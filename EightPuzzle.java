@@ -1,35 +1,96 @@
+/*
+* Written by: Ryan Waer
+* CS 420 Project 1
+* Date: 10-21-2016
+* 8-Puzzle: Game in which there are 9 tiles where 8 are numbered 1-9
+*   and the empty tile can be swapped with any adjacent tile. The objective
+*   is to rearrange the puzzle into the following order:
+*    |1|2
+*   3|4|5
+*   6|7|8
+* This program solves randomly generated 8-Puzzles and puzzles entered by the
+*   user
+*/
 import java.util.Collections;
 import java.util.ArrayList;
 import java.lang.StringBuilder;
 import java.util.PriorityQueue;
 import java.util.HashMap;
 import java.lang.RuntimeException;
+import java.io.*;
 
 public class EightPuzzle
 {
-  public static void main(String[] args)
+  public static int searchCost;
+  /*public static void main(String[] args)
   {
-    //generate randomPuzzle
+    //create options menu
     String puzzle = randomPuzzle();
-    solvePuzzle(puzzle);
+    printSolution(solvePuzzle(puzzle, 1));
+  }*/
+  ///* alternate program used for analysis and statistics
+  public static void main(String[] args) throws IOException
+  {
+    //first do h1
+    Pair pair = processStats(0);
+    System.out.println("h1");
+    for(int i =2; i <= 20; i+=2)
+      System.out.println("Depth: "+i+"\tAverage Time: "
+        + (pair.time.get(i)/100)+ "ms" + "\tAverage Search Cost: " + (pair.cost.get(i)/100));
+    //now do h2
+    pair = processStats(1);
+    System.out.println("h2");
+    for(int i =2; i <= 20; i+=2)
+      System.out.println("Depth: "+i+"\tAverage Time: "
+        + (pair.time.get(i)/100)+ "ms" + "\tAverage Search Cost: " + (pair.cost.get(i)/100));
   }
-  public static void solvePuzzle(String puzzle)
+  //*/
+  public static Pair processStats(int heuristic) throws IOException
+  {
+    //create a program that reads in 100 cases and solves them
+    String line = null;
+    FileReader fileReader = new FileReader("testCases.txt");
+    BufferedReader bufferedReader = new BufferedReader(fileReader);
+    HashMap<Integer, Long> timeKeeper = new HashMap<>();
+    HashMap<Integer, Integer> costKeeper = new HashMap<>();
+
+    int depth = 0, sigmaSearchCost = 0;
+    long startTime = 0;
+    while((line = bufferedReader.readLine()) != null)
+    {
+      //if its not a digit then we are starting fresh
+      if(!Character.isDigit(line.charAt(0)))
+      {
+        timeKeeper.put(depth, System.currentTimeMillis()-startTime);
+        costKeeper.put(depth, sigmaSearchCost);
+        depth+=2;
+        sigmaSearchCost=0;
+        startTime = System.currentTimeMillis();
+        line = bufferedReader.readLine();
+      }
+      ArrayList<aStarNode> s = solvePuzzle(line, heuristic);
+      sigmaSearchCost += searchCost;
+    }
+    //the last entry depth 20
+    timeKeeper.put(depth, System.currentTimeMillis()-startTime);
+    costKeeper.put(depth, sigmaSearchCost);
+    bufferedReader.close();
+    return new Pair(timeKeeper, costKeeper);
+  }
+  public static ArrayList<aStarNode> solvePuzzle(String puzzle, int heuristic)
   {
     if(!solvable(puzzle))
-      throw new RuntimeException("Puzzle not solvable");
-    ArrayList<aStarNode> traceList = aStarSearch(puzzle, 0); //h1 first
-    printSolution(traceList);
-    traceList = aStarSearch(puzzle, 1); //then h2
-    printSolution(traceList);
+      throw new RuntimeException("Puzzle not solvable:\n" + (new aStarNode(puzzle, 0, null, 0)));
+    searchCost=0;
+    return heuristic == 0 ? aStarSearch(puzzle, 0) : aStarSearch(puzzle, 1);
   }
   public static void printSolution(ArrayList<aStarNode> traceList)
   {
     for(int i = 0; i < traceList.size(); ++i)
-    {
       System.out.println(traceList.get(i));
-      if(i==traceList.size()-1)
-        System.out.println("search cost: " + traceList.get(i).getf());
-    }
+    System.out.println("Depth: " + traceList.get(traceList.size()-1).getf()
+    + "\tSearch Cost: " + traceList.get(traceList.size()-1).getf());
+
   }
   public static ArrayList<aStarNode> aStarSearch(String initialState, int heuristic)
   {
@@ -41,13 +102,15 @@ public class EightPuzzle
     while(!frontier.isEmpty())
     {
       aStarNode currentNode = frontier.poll();
-      frontierHelper.remove(currentNode.getStringRep());
+      ++searchCost;
       if(goalTest(currentNode.getStringRep()))
         return traceBackList(currentNode);
+      frontierHelper.remove(currentNode.getStringRep());
       explored.put(currentNode.getStringRep(), currentNode.getStringRep());
-      for(int i =0; i < currentNode.successors().size(); ++i)
+      ArrayList<aStarNode> successors = currentNode.successors();
+      for(int i =0; i < successors.size(); ++i)
       {
-        aStarNode node = currentNode.successors().get(i);
+        aStarNode node = successors.get(i);
         if(explored.containsKey(node.getStringRep()))
           continue;
         if(!frontierHelper.containsKey(node.getStringRep()));
@@ -68,7 +131,7 @@ public class EightPuzzle
       path.add(node);
       node = node.getParent();
     }
-    Collections.reverse(path);
+    Collections.reverse(path); //reverse so we have start to goal
     return path;
   }
   public static boolean solvable(String stringRep)
@@ -76,11 +139,11 @@ public class EightPuzzle
     int inversions = 0;
     for(int i=0; i < stringRep.length(); ++i)
     {
-      if(stringRep.charAt(i)=='0')
+      if(stringRep.charAt(i)=='0') //don't consider empty tile
         continue;
       for(int j=i+1; j < stringRep.length(); ++j)
       {
-        if(stringRep.charAt(j)==0)
+        if(stringRep.charAt(j)==0) //don't consider empty tile
           continue;
         if(stringRep.charAt(i) > stringRep.charAt(j))
           ++inversions;
@@ -102,5 +165,15 @@ public class EightPuzzle
     for(int i = 0; i < 9; ++i)
       sb.append(list.get(i));
     return sb.toString();
+  }
+  public static class Pair
+  {
+    public HashMap<Integer, Long> time;
+    public HashMap<Integer, Integer> cost;
+    public Pair(HashMap<Integer, Long> t, HashMap<Integer, Integer> c)
+    {
+      time = t;
+      cost = c;
+    }
   }
 }

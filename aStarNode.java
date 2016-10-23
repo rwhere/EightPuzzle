@@ -1,7 +1,12 @@
 import java.util.Collections;
 import java.util.ArrayList;
 import java.lang.StringBuilder;
-
+/*
+* Written by: Ryan Waer
+* CS 420 Project 1
+* Date: 10-21-2016
+* A* Node for 8-Puzzle
+*/
 public class aStarNode implements Comparable<aStarNode>
 {
   private int[][] board;
@@ -27,13 +32,10 @@ public class aStarNode implements Comparable<aStarNode>
       for(int j = 0; j < 3; ++j)
         board[i][j] = b.charAt(counter++) - '0';
   }
-  public int[][] getBoard()
-  {
-    return board;
-  }
+  //needed for PriorityQueue
   public int compareTo(aStarNode other)
   {
-    if(f == other.f) //WILL THIS CAUSE ISSUES?
+    if(f == other.f)
       return 0;
     else if(f < other.f)
       return -1;
@@ -66,12 +68,10 @@ public class aStarNode implements Comparable<aStarNode>
   {
     return parent;
   }
-  public void setParent(aStarNode p)
-  {
-    parent = p;
-  }
   private int h1()
   {
+    if(stringRep=="012345678") //if at goal, heuristic = 0
+      return 0;
     int counter = 0, num = 0;
     for(int r = 0; r < board.length; ++r)
       for(int c = 0; c < board[0].length; ++c)
@@ -84,6 +84,8 @@ public class aStarNode implements Comparable<aStarNode>
   }
   private int h2()
   {
+    if(stringRep=="012345678") //if at goal, heuristic = 0
+      return 0;
     int totMoves = 0;
     for(int r = 0; r < board.length; ++r)
       for(int c = 0; c < board[0].length; ++c)
@@ -100,11 +102,12 @@ public class aStarNode implements Comparable<aStarNode>
 
   public ArrayList<aStarNode> successors()
   {
+    ArrayList<Integer> neighborLocs = new ArrayList<>();
+    ArrayList<aStarNode> successors = new ArrayList<>();
     int zeroLoc = findZeroLoc();
     int row = zeroLoc / 3;
     int col = zeroLoc % 3;
-    ArrayList<Integer> neighborLocs = new ArrayList<>();
-    ArrayList<aStarNode> successors = new ArrayList<>();
+
     if(row+1 >= 0 && row+1 <= 2 ) //down
       neighborLocs.add(3*(row+1) + col);
     if(row-1 >= 0 && row-1 <= 2 ) //up
