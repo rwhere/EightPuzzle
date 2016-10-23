@@ -17,18 +17,17 @@ import java.lang.StringBuilder;
 import java.util.PriorityQueue;
 import java.util.HashMap;
 import java.lang.RuntimeException;
+import java.util.Scanner;
 import java.io.*;
 
 public class EightPuzzle
 {
   public static int searchCost;
-  /*public static void main(String[] args)
+  public static void main(String[] args)
   {
-    //create options menu
-    String puzzle = randomPuzzle();
-    printSolution(solvePuzzle(puzzle, 1));
-  }*/
-  ///* alternate program used for analysis and statistics
+    printSolution(solvePuzzle(getUserInput(), 1));
+  }
+  /* alternate program used for analysis and statistics
   public static void main(String[] args) throws IOException
   {
     //first do h1
@@ -44,7 +43,48 @@ public class EightPuzzle
       System.out.println("Depth: "+i+"\tAverage Time: "
         + (pair.time.get(i)/100)+ "ms" + "\tAverage Search Cost: " + (pair.cost.get(i)/100));
   }
-  //*/
+  */
+  public static String getUserInput()
+  {
+    int response;
+    String puzzle;
+    Scanner kb = new Scanner(System.in);
+    boolean invalid = false;
+    System.out.print("1.) solve randomly generated 8-Puzzle"
+      + "\n2.) enter custom 8-Puzzle and solve\nSelection: ");
+    response = kb.nextInt();
+    while(response < 1 || response > 2)
+    {
+      System.out.print("Invalid option. Please try again.\nSelection: ");
+      response = kb.nextInt();
+    }
+    if(response==1)
+      puzzle = randomPuzzle();
+    else
+    {
+      System.out.print("Please input custom puzzle (e.g. 142305678)\nPuzzle: ");
+      puzzle = kb.next();
+      if(puzzle.length() != 9)
+        invalid = true;
+      for(int i = 0; i < 9; ++i)
+      {
+        if(puzzle.indexOf((char)(i+48))==-1)
+          invalid = true;
+      }
+      while(invalid)
+      {
+        System.out.print("invalid puzzle. Please try again.\nPuzzle: ");
+        puzzle = kb.next();
+        invalid = false;
+        if(puzzle.length() != 9)
+          invalid = true;
+        for(int i = 0; i < 9; ++i)
+          if(puzzle.indexOf((char)(i+48))==-1)
+            invalid = true;
+      }
+    }
+    return puzzle;
+  }
   public static Pair processStats(int heuristic) throws IOException
   {
     //create a program that reads in 100 cases and solves them
@@ -82,14 +122,17 @@ public class EightPuzzle
     if(!solvable(puzzle))
       throw new RuntimeException("Puzzle not solvable:\n" + (new aStarNode(puzzle, 0, null, 0)));
     searchCost=0;
-    return heuristic == 0 ? aStarSearch(puzzle, 0) : aStarSearch(puzzle, 1);
+    ArrayList<aStarNode> a = heuristic == 0 ? aStarSearch(puzzle, 0) : aStarSearch(puzzle, 1);
+    if(a==null)
+      throw new RuntimeException("Puzzle not solvable:\n" + (new aStarNode(puzzle, 0, null, 0)));
+    return a;
   }
   public static void printSolution(ArrayList<aStarNode> traceList)
   {
     for(int i = 0; i < traceList.size(); ++i)
       System.out.println(traceList.get(i));
     System.out.println("Depth: " + traceList.get(traceList.size()-1).getf()
-    + "\tSearch Cost: " + traceList.get(traceList.size()-1).getf());
+    + "\tSearch Cost: " + searchCost);
 
   }
   public static ArrayList<aStarNode> aStarSearch(String initialState, int heuristic)
