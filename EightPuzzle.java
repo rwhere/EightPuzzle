@@ -68,7 +68,7 @@ public class EightPuzzle
         invalid = true;
       for(int i = 0; i < 9; ++i)
       {
-        if(puzzle.indexOf((char)(i+48))==-1)
+        if(puzzle.indexOf((char)(i+'0'))==-1)
           invalid = true;
       }
       while(invalid)
@@ -79,7 +79,7 @@ public class EightPuzzle
         if(puzzle.length() != 9)
           invalid = true;
         for(int i = 0; i < 9; ++i)
-          if(puzzle.indexOf((char)(i+48))==-1)
+          if(puzzle.indexOf((char)(i+'0'))==-1)
             invalid = true;
       }
     }
@@ -89,7 +89,7 @@ public class EightPuzzle
   {
     //create a program that reads in 100 cases and solves them
     String line = null;
-    FileReader fileReader = new FileReader("testCases.txt");
+    FileReader fileReader = new FileReader("test_cases.txt");
     BufferedReader bufferedReader = new BufferedReader(fileReader);
     HashMap<Integer, Long> timeKeeper = new HashMap<>();
     HashMap<Integer, Integer> costKeeper = new HashMap<>();
