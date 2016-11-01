@@ -123,8 +123,6 @@ public class EightPuzzle
       throw new RuntimeException("Puzzle not solvable:\n" + (new aStarNode(puzzle, 0, null, 0)));
     searchCost=0;
     ArrayList<aStarNode> a = heuristic == 0 ? aStarSearch(puzzle, 0) : aStarSearch(puzzle, 1);
-    if(a==null)
-      throw new RuntimeException("Puzzle not solvable:\n" + (new aStarNode(puzzle, 0, null, 0)));
     return a;
   }
   public static void printSolution(ArrayList<aStarNode> traceList)
@@ -186,12 +184,13 @@ public class EightPuzzle
         continue;
       for(int j=i+1; j < stringRep.length(); ++j)
       {
-        if(stringRep.charAt(j)==0) //don't consider empty tile
+        if(stringRep.charAt(j)=='0') //don't consider empty tile
           continue;
         if(stringRep.charAt(i) > stringRep.charAt(j))
           ++inversions;
       }
     }
+    System.out.println("num of inv: " + inversions);
     return inversions%2==0;
   }
   public static boolean goalTest(String stringRep)
